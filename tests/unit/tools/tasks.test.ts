@@ -227,6 +227,39 @@ describe('task tool logic', () => {
       expect(JSON.stringify(result)).toContain('mutually exclusive');
       expect(mockSend).not.toHaveBeenCalled();
     });
+
+    it('sets remind_at alone without touching due_with_time or dueDay (via real update_task handler)', async () => {
+      mockSend.mockResolvedValueOnce(mockResponse({}));
+      await toolHandlers.get('update_task')!({ task_id: 'task-1', remind_at: 1791967620000 });
+      expect(mockSend).toHaveBeenCalledWith(dirs, 'updateTask', {
+        taskId: 'task-1',
+        data: { remindAt: 1791967620000 },
+      });
+    });
+
+    it('clears a previously set dueWithTime when due_day is set alone in a later call (via real update_task handler)', async () => {
+      // Guards against the two-call sequence the single-call mutual-exclusivity check can't
+      // see: set due_with_time now, then set due_day alone later without mentioning
+      // due_with_time. Without this, the task would end up with both fields set — a state
+      // SP's own reducer never produces.
+      mockSend.mockResolvedValueOnce(mockResponse({}));
+      await toolHandlers.get('update_task')!({ task_id: 'task-1', due_day: '2026-12-01' });
+      expect(mockSend).toHaveBeenCalledWith(dirs, 'updateTask', {
+        taskId: 'task-1',
+        data: { dueDay: '2026-12-01', dueWithTime: null },
+      });
+    });
+
+    it('clearing due_day to empty string does not also clear dueWithTime (via real update_task handler)', async () => {
+      // due_day: '' means "clear the due day", not "schedule a plain day" — nothing to make
+      // mutually exclusive with a timed schedule here, so dueWithTime is left untouched.
+      mockSend.mockResolvedValueOnce(mockResponse({}));
+      await toolHandlers.get('update_task')!({ task_id: 'task-1', due_day: '' });
+      expect(mockSend).toHaveBeenCalledWith(dirs, 'updateTask', {
+        taskId: 'task-1',
+        data: { dueDay: null },
+      });
+    });
   });
 
   describe('update_task schema — strict unknown-key rejection', () => {

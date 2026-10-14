@@ -320,7 +320,15 @@ export function registerTaskTools(server: McpServer, dirs: ResolvedDirs): void {
         data.isDone = is_done;
         data.doneOn = is_done ? Date.now() : null;
       }
-      if (due_day !== undefined) data.dueDay = due_day || null;
+      if (due_day !== undefined) {
+        data.dueDay = due_day || null;
+        // Same mutual exclusivity SP's own scheduleTaskWithTime reducer enforces, applied
+        // in this direction too: setting a plain due_day on a task that already carries a
+        // timed dueWithTime must clear it, or the task would end up with both set — a state
+        // SP's own reducer never produces. Only clears when due_with_time wasn't itself
+        // passed in this same call; that case is handled below instead.
+        if (due_day && due_with_time === undefined) data.dueWithTime = null;
+      }
       if (deadline_day !== undefined) data.deadlineDay = deadline_day || null;
       if (planned_at !== undefined) data.plannedAt = planned_at;
       // Same mutual exclusivity SP's own scheduleTaskWithTime reducer enforces:
