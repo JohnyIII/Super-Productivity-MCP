@@ -138,7 +138,7 @@ The plugin to upload to Super Productivity is at `dist/plugin.zip` after `npm ru
 | `create_task` | Create a task (supports SP short syntax) |
 | `create_task_with_subtasks` | Create a parent task + subtasks in one operation |
 | `get_tasks` | List tasks — filter by project, tag, done, archived, search (title+notes), `parents_only`, `overdue`, `unscheduled`, `planned_for_today`, `recurring_only`, `fields` |
-| `update_task` | Update title, notes, done state, due date, deadline, `planned_at`, time estimate, tags |
+| `update_task` | Update title, notes, done state, due date, deadline, `planned_at`, timed schedule (`due_with_time`) and reminder (`remind_at`), time estimate, tags |
 | `complete_task` | Mark a task as complete |
 | `delete_task` | Permanently delete a task (parent deletes subtasks too). Archived tasks can't be deleted — SP's plugin API is read-only for the archive |
 | `start_task` | Start the time tracker on a task |
